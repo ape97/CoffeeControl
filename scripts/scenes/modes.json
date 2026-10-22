@@ -1,0 +1,20 @@
+{
+  "screen": [760, 360], "scale": 2,
+  "shots": [
+    {"duration": 1.2, "symbol": "main", "cursor": [300, 250], "caption": "Coffee Control lives in the menu bar",
+     "windows": [{"id": "w", "title": "Downloads", "rect": [36, 120, 300, 280]}]},
+    {"duration": 0.15, "move": 0.7, "target": "@item"},
+    {"duration": 1.6, "panel": "main", "target": "@item", "click": true, "caption": "Awake: the Mac never sleeps, not even with the lid closed"},
+    {"duration": 0.2, "move": 0.6, "panel": "main", "target": "mode", "point": [0.5, 0.5]},
+    {"duration": 2.0, "panel": "normal", "symbol": "normal", "target": "mode", "point": [0.5, 0.5], "click": true,
+     "caption": "Normal: the Mac sleeps as usual"},
+    {"duration": 0.2, "move": 0.5, "panel": "normal", "target": "mode", "point": [0.833, 0.5]},
+    {"duration": 2.2, "panel": "sleep", "symbol": "sleep", "target": "mode", "point": [0.833, 0.5], "click": true,
+     "caption": "Sleep: sleeps even while other apps block it"},
+    {"duration": 0.2, "move": 0.7, "panel": "sleep", "target": "mode", "point": [0.167, 0.5]},
+    {"duration": 1.2, "panel": "main", "symbol": "main", "target": "mode", "point": [0.167, 0.5], "click": true,
+     "caption": "Back to Awake with one click"},
+    {"duration": 0.1, "move": 0.6, "panel": "main", "cursor": [300, 250]},
+    {"duration": 2.0, "cursor": [300, 250], "click": true, "caption": "The menu bar icon always shows the mode"}
+  ]
+}

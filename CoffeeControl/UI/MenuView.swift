@@ -47,6 +47,7 @@ struct MainPage: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .demoTarget("mode")
             .frame(maxWidth: .infinity)
         }
         // Without the helper rule the Mac sleeps with the lid closed anyway: offer the one-time setup right here.

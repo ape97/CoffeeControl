@@ -78,6 +78,52 @@ struct ScrollFade: View {
     }
 }
 
+/// Switch for settings. Snapshots run in an app that is never active, where AppKit draws a switch that is on in its grey
+/// inactive look; there a drawn copy of the active switch covers it, so the images show the switch as it looks in the open menu.
+struct SettingSwitchStyle: ToggleStyle {
+    @Environment(\.controlSize) private var controlSize
+
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration)
+            .toggleStyle(.switch)
+            .overlay(alignment: .trailing) {
+                if Runtime.isSnapshot && configuration.isOn {
+                    let mini = controlSize == .mini
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: mini ? 32 : 44, height: mini ? 15 : 20)
+                        .overlay(alignment: .trailing) {
+                            Capsule().fill(.white).frame(width: mini ? 19 : 27, height: mini ? 11 : 16).padding(.trailing, 2)
+                        }
+                }
+            }
+    }
+}
+
+extension ToggleStyle where Self == SettingSwitchStyle {
+    static var setting: SettingSwitchStyle { SettingSwitchStyle() }
+}
+
+/// Snapshot mode only: where controls sit in the rendered menu, in points from its top left. Written next to the images as
+/// <base>-targets.json, so the README animations (scripts/compose.swift --scene) can point the cursor at them.
+@MainActor
+enum DemoTargets {
+    static var frames: [String: CGRect] = [:]
+    static func write(to path: String) {
+        let json = frames.mapValues { [$0.minX, $0.minY, $0.width, $0.height].map { ($0 * 10).rounded() / 10 } }
+        try? JSONEncoder().encode(json).write(to: URL(fileURLWithPath: path))
+    }
+}
+
+extension View {
+    /// Records this view's frame for the README animations (snapshots only, see `DemoTargets`).
+    func demoTarget(_ id: String) -> some View {
+        onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+            if Runtime.isSnapshot { DemoTargets.frames[id] = frame }
+        }
+    }
+}
+
 /// Explanation under a setting or status: secondary, wraps to as many lines as it needs and is never truncated.
 /// `fixedSize(vertical:)` makes the menu panel measure the full height; without it the panel cuts the text off.
 struct SettingNote: View {

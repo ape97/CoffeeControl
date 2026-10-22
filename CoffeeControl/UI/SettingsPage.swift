@@ -21,7 +21,7 @@ struct SettingsPage: View {
                     Spacer()
                     Toggle("Also on Battery", isOn: Binding(get: { model.awakeOnBattery }, set: { model.setAwakeOnBattery($0) }))
                         .labelsHidden()
-                        .toggleStyle(.switch)
+                        .toggleStyle(.setting)
                         .controlSize(.small)
                 }
                 SettingNote(model.awakeOnBattery ? "Stays awake on battery too, until the battery runs low."
@@ -34,7 +34,7 @@ struct SettingsPage: View {
                     Spacer()
                     Toggle("Low Power Mode When Closed", isOn: Binding(get: { model.lowPowerWhenClosed }, set: { model.setLowPowerWhenClosed($0) }))
                         .labelsHidden()
-                        .toggleStyle(.switch)
+                        .toggleStyle(.setting)
                         .controlSize(.small)
                 }
                 SettingNote("Saves energy while the lid is closed; your setting returns when you open it.")
@@ -65,7 +65,7 @@ struct SettingsPage: View {
                     Spacer()
                     Toggle("Open at Login", isOn: Binding(get: { launchAtLogin }, set: { LoginItem.set($0); launchAtLogin = LoginItem.isEnabled }))
                         .labelsHidden()
-                        .toggleStyle(.switch)
+                        .toggleStyle(.setting)
                         .controlSize(.small)
                 }
                 SettingNote("Starts Coffee Control automatically when you log in.")

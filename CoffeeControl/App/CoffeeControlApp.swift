@@ -112,6 +112,7 @@ enum Snapshot {
             effect.cacheDisplay(in: effect.bounds, to: rep)
             try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: "\(base)-\(suffix).png"))
         }
+        DemoTargets.write(to: "\(base)-targets.json")
         // Menu bar: on a light and a dark strip, double resolution.
         let icon = CoffeeIcon.image(model.iconMode, pointSize: 14, weight: .regular)
         let size = NSSize(width: icon.size.width + 16, height: 24)

@@ -1,19 +1,32 @@
-# Coffee Control
+<p align="center">
+  <img src="docs/images/icon.png" alt="Coffee Control icon" width="128">
+</p>
 
-[![macOS 26+](https://img.shields.io/badge/macOS-26%2B-black?logo=apple)](#requirements)
-[![Swift](https://img.shields.io/badge/Swift-SwiftUI-orange?logo=swift)](docs/DEVELOPMENT.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
-[![AI-assisted](https://img.shields.io/badge/built%20with-AI%20assistance-8A2BE2)](#ai-assisted-development)
+<h1 align="center">Coffee Control</h1>
 
-A menu bar app that keeps your Mac awake, even with the lid closed, lets it sleep normally, or forces it to sleep despite other apps.
+<p align="center">A menu bar app that keeps your Mac awake, even with the lid closed, lets it sleep normally, or forces it to sleep despite other apps.</p>
 
 <p align="center">
-  <img src="docs/images/main-dark.png" alt="Coffee Control menu (dark)" width="400">
-  <img src="docs/images/main-light.png" alt="Coffee Control menu (light)" width="400">
+  <a href="#requirements"><img src="https://img.shields.io/badge/macOS-26%2B-black?logo=apple" alt="macOS 26+"></a>
+  <a href="docs/DEVELOPMENT.md"><img src="https://img.shields.io/badge/Swift-SwiftUI-orange?logo=swift" alt="Swift"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT"></a>
+  <a href="#ai-assisted-development"><img src="https://img.shields.io/badge/built%20with-AI%20assistance-8A2BE2" alt="AI-assisted"></a>
 </p>
 
 > [!NOTE]
 > This app was developed with AI assistance. See [AI-assisted development](#ai-assisted-development).
+
+## In action
+
+### Switching modes
+
+<p align="center">
+  <img src="docs/images/modes.gif" alt="Switching between Awake, Normal and Sleep from the menu" width="720">
+</p>
+
+Switch between Awake, Normal and Sleep with one click. The menu bar icon and the status line follow the mode immediately.
+
+<sub>The animations are rendered by the app itself from invented demo data; nothing on your Mac is recorded.</sub>
 
 ## Features
 
@@ -26,18 +39,19 @@ A menu bar app that keeps your Mac awake, even with the lid closed, lets it slee
 
 ## Screenshots
 
+<p align="center">
+  <img src="docs/images/main-dark.png" alt="Coffee Control menu (dark)" width="400">
+  <img src="docs/images/main-light.png" alt="Coffee Control menu (light)" width="400">
+</p>
+
 <table>
   <tr>
     <td align="center"><img src="docs/images/normal-dark.png" width="360"><br>Normal: the Mac sleeps as usual</td>
     <td align="center"><img src="docs/images/sleep-dark.png" width="360"><br>Force Sleep: ignores other apps' sleep blocks</td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/no-rule-dark.png" width="360"><br>Closed-lid setup not done yet</td>
     <td align="center"><img src="docs/images/battery-pause-dark.png" width="360"><br>Paused on battery</td>
-  </tr>
-  <tr>
     <td align="center"><img src="docs/images/settings-dark.png" width="360"><br>Settings</td>
-    <td></td>
   </tr>
 </table>
 

@@ -30,7 +30,7 @@ docs/                       PLATFORM.md (tested macOS/Xcode), images/ (README sc
 | `./scripts/check.sh` | The gate. Warning-free Release build, invisible snapshots of every page into `build/check/`, self-test, performance test. Ends with `RESULT: GREEN` or `RED`. Changes nothing on the system. |
 | `./scripts/deploy.sh` | Runs the check; only if green, installs to `/Applications`, restarts the app and measures idle CPU. |
 | `./scripts/status.sh` | Shows the installed version, running state, login item and signature, and compares the system with the last tested one in `docs/PLATFORM.md`. |
-| `./scripts/screenshots.sh` | Renders every page with demo data and composes the README images in `docs/images/`: every page in dark mode, the main page in light mode too. |
+| `./scripts/screenshots.sh` | Renders every page with demo data and composes the README images in `docs/images/`: every page in dark mode, the main page in light mode too. Each animation in `scripts/scenes/*.json` (cursor, clicks and captions over the rendered pages, `compose.swift --scene`) becomes `docs/images/<name>.gif`; the app icon is copied to `docs/images/icon.png`. GIFs need `ffmpeg` (`brew install ffmpeg`). |
 | `./scripts/release.sh` | Builds the downloadable, ad-hoc signed and stripped `build/release/CoffeeControl-<version>.zip`. |
 | `./scripts/idle.sh [seconds]` | Measures the running app's CPU use and memory footprint with the menu closed. |
 | `./scripts/measure-menu.sh` | Measures CPU use while the menu is open (start it, then use the menu). |
