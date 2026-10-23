@@ -8,7 +8,9 @@ COLORS=(D9B08C 6B452D)   # the icon's gradient colours (top, bottom), see script
 # page:snapshot arguments (the first page also provides the menu bar icon)
 PAGES=("main:" "normal:--off" "sleep:--sleep --blocked" "battery-pause:--battery" "timer:--timer 30 --left 24 --then-sleep" "settings:--settings")
 # extra states only for the animations (rendered to RAW, not composed)
-EXTRA=("timer-start:--timer 30 --left 30" "timer-then:--timer 30 --left 30 --then-sleep" "timer-late:--timer 30 --left 1 --then-sleep")
+EXTRA=("timer-start:--timer 30 --left 30" "timer-then:--timer 30 --left 30 --then-sleep" "timer-late:--timer 30 --left 1 --then-sleep"
+       "dur-typed:--settings --draft 8h" "dur-added:--settings --times 15,30,60,120,240,480"
+       "dur-main:--times 15,30,60,120,240,480" "dur-run:--timer 480 --left 480 --times 15,30,60,120,240,480")
 
 mkdir -p build
 xcodegen generate -q

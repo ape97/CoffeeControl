@@ -32,7 +32,15 @@ Switch between Awake, Normal and Sleep with one click. The menu bar icon and the
   <img src="docs/images/timer.gif" alt="Starting a 30-minute timer that then switches the Mac to Sleep" width="720">
 </p>
 
-Limit the current mode: after 15 minutes to 4 hours the Mac goes back to Normal or straight to Sleep. The menu bar shows the minutes left.
+Limit the current mode: after the chosen time the Mac goes back to Normal or straight to Sleep. The menu bar shows the time left. The timer is off by default; switch it on under Settings → **Timer**.
+
+### Your own durations
+
+<p align="center">
+  <img src="docs/images/durations.gif" alt="Adding an 8-hour duration in Settings and starting it from the menu" width="720">
+</p>
+
+The timer offers 15 minutes to 4 hours out of the box. Type your own in Settings, in minutes or hours (`45m`, `8h`, `1h 30m`), up to six durations of at most 99 hours.
 
 <sub>The animations are rendered by the app itself from invented demo data; nothing on your Mac is recorded.</sub>
 
@@ -40,7 +48,7 @@ Limit the current mode: after 15 minutes to 4 hours the Mac goes back to Normal 
 
 - **Three modes**: **Awake**, **Normal** and **Sleep**, switched with one click in the menu.
 - **Awake**: the Mac never sleeps, not even with the lid closed. The status line shows what the system really reports and the app reverts it if something else resets the setting.
-- **Timer**: keep the current mode for 15 minutes to 4 hours, then switch to **Normal** or **Sleep**. The minutes left appear next to the menu bar icon; switching the mode by hand or quitting cancels the timer.
+- **Timer** (optional, switch it on in Settings): keep the current mode for a while, then switch to **Normal** or **Sleep**. Pick from up to six durations of your own (default 15 minutes to 4 hours). The minutes left appear next to the menu bar icon; switching the mode by hand or quitting cancels the timer.
 - **Sleep (force sleep)**: the Mac sleeps as if nobody had started `caffeinate`, regardless of which app holds a sleep block (video, screen sharing, `caffeinate -s`).
 - **Closed-lid comfort**: optional Low Power Mode while the lid is closed (your previous power modes are restored on opening) and the built-in display is switched off.
 - **Also on Battery** option: when off, the app pauses on battery and the Mac sleeps normally.
@@ -63,7 +71,7 @@ Limit the current mode: after 15 minutes to 4 hours the Mac goes back to Normal 
     <td align="center"><img src="docs/images/timer-dark.png" width="360"><br>Timer: Sleep in 24 minutes</td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/settings-dark.png" width="360"><br>Settings</td>
+    <td align="center"><img src="docs/images/settings-dark.png" width="360"><br>Settings with the timer's durations</td>
     <td></td>
   </tr>
 </table>
@@ -87,8 +95,8 @@ To uninstall, remove the sleep rule under Settings → **Sleep Rule** → **Remo
 ## Usage
 
 - Click the menu bar item and pick a mode: **Awake**, **Normal** or **Sleep**.
-- **Timer**: pick a duration and what follows (**Then Normal** or **Sleep**); **Off** cancels it.
-- Settings (gear icon): **Also on Battery**, **Low Power Mode When Closed**, the sleep rule and **Open at Login**.
+- **Timer**: switch it on under Settings → **Timer**, then pick a duration in the menu and what follows (**Then Normal** or **Sleep**); **Off** cancels it. Add or remove durations under Settings → **Timer**.
+- Settings (gear icon): **Also on Battery**, **Low Power Mode When Closed**, **Timer** with its durations, the sleep rule and **Open at Login**.
 - Quit with the power button in the menu footer; everything the app changed is restored.
 
 Note: while Awake, a closed MacBook in a bag gets warm and drains its battery. The protections of macOS for low battery and overheating still apply.

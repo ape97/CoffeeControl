@@ -1,0 +1,20 @@
+{
+  "screen": [760, 680], "scale": 2,
+  "shots": [
+    {"duration": 0.8, "symbol": "main", "cursor": [300, 520], "caption": "Your own durations, like 8 hours",
+     "windows": [{"id": "w", "title": "Downloads", "rect": [36, 160, 300, 300]}]},
+    {"duration": 0.15, "move": 0.7, "target": "@item"},
+    {"duration": 1.0, "panel": "main", "target": "@item", "click": true},
+    {"duration": 0.2, "move": 0.6, "panel": "main", "target": "settings"},
+    {"duration": 1.4, "panel": "settings", "target": "settings", "click": true, "caption": "Settings: the timer's durations"},
+    {"duration": 0.2, "move": 0.6, "panel": "settings", "target": "duration"},
+    {"duration": 1.6, "panel": "dur-typed", "target": "duration", "click": true, "caption": "Type minutes or hours: 8h"},
+    {"duration": 0.2, "move": 0.5, "panel": "dur-typed", "target": "add"},
+    {"duration": 1.8, "panel": "dur-added", "target": "add", "click": true, "caption": "8h joins the list – click a duration to remove it"},
+    {"duration": 0.2, "move": 0.7, "panel": "dur-added", "target": "back"},
+    {"duration": 0.15, "panel": "dur-added", "target": "back", "click": true},
+    {"duration": 0.9, "panel": "dur-main"},
+    {"duration": 0.2, "move": 0.6, "panel": "dur-main", "target": "timer-480"},
+    {"duration": 2.4, "panel": "dur-run", "symbol": "dur-run", "target": "timer-480", "click": true, "caption": "Awake for the next 8 hours"}
+  ]
+}

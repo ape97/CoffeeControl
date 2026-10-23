@@ -45,7 +45,9 @@ The app binary (`CoffeeControl.app/Contents/MacOS/CoffeeControl`) understands a 
 - `--snapshot <base>` renders the menu off-screen to `<base>-light.png`, `<base>-dark.png` and `<base>-symbol.png`
   and exits. No window is shown. Combine it with state flags: `--settings` (settings page), `--sleep` (Sleep mode),
   `--off` (Normal mode), `--blocked` (foreign sleep blocks present), `--nohelper` (no sleep rule), `--closed` (lid closed),
-  `--battery` (paused on battery), `--error` (setup error shown).
+  `--battery` (paused on battery), `--error` (setup error shown), `--timer <minutes> --left <minutes>` (running timer,
+  `--then-sleep` for Then Sleep), `--times a,b,c` (own durations in minutes), `--no-timer` (timer switched off),
+  `--draft <text>` (text typed into the duration field).
 - `--demo` (with `--snapshot`) uses invented data, so screenshots never show your own system.
 - `--selftest <file.json>` runs the logic tests of the mode machine and writes the result as JSON.
 - `--structuretest <file.json>` checks that menu updates stay structurally quiet (otherwise macOS keeps resetting the pointer) and writes the result as JSON.

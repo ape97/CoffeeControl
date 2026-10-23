@@ -50,7 +50,7 @@ struct MainPage: View {
             .demoTarget("mode")
             .frame(maxWidth: .infinity)
         }
-        TimerModule()
+        if model.showTimer { TimerModule() }
         // Without the helper rule the Mac sleeps with the lid closed anyway: offer the one-time setup right here.
         if !state.helperInstalled {
             Module {
@@ -113,15 +113,15 @@ struct TimerModule: View {
                 Spacer()
                 if model.timerMinutes != nil { TimerNote() }
             }
-            // Six segments don't fit next to the label: the picker gets its own full-width row.
-            Picker("Timer", selection: Binding(get: { model.timerMinutes ?? 0 }, set: { model.setTimer($0 == 0 ? nil : $0) })) {
-                Text("Off").tag(0)
-                ForEach(AppModel.timerChoices, id: \.self) { Text(CoffeeTimer.short($0)).tag($0) }
+            // Chips instead of segments: segments all take the width of the widest label, and typed durations
+            // ("1h 30m", "16h") don't fit seven of them in a row. Chips keep their own width and wrap.
+            FlowRow(spacing: 6) {
+                TimerChip(title: "Off", selected: model.timerMinutes == nil, accent: false) { model.setTimer(nil) }
+                ForEach(model.timerChoices, id: \.self) { minutes in
+                    TimerChip(title: CoffeeTimer.short(minutes), selected: model.timerMinutes == minutes) { model.setTimer(minutes) }
+                        .demoTarget("timer-\(minutes)")
+                }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .demoTarget("timer")
-            .frame(maxWidth: .infinity)
             HStack(spacing: 8) {
                 SettingLabel(symbol: "arrow.turn.down.right", title: "Then", tint: .gray)
                 Spacer()
@@ -139,13 +139,40 @@ struct TimerModule: View {
     }
 }
 
+/// One duration: orange while it runs; "Off" is selected in plain gray.
+private struct TimerChip: View {
+    let title: String
+    let selected: Bool
+    var accent = true
+    let action: () -> Void
+
+    private var fill: AnyShapeStyle {
+        guard selected else { return AnyShapeStyle(.primary.opacity(0.08)) }
+        return accent ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary.opacity(0.2))
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 12, weight: selected ? .semibold : .regular).monospacedDigit())
+                .foregroundStyle(selected && accent ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(fill, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 /// Own view so only this line follows the minute count – the pickers above stay untouched.
 /// Styled like `SettingNote`, but with fixed-width digits and on one line, so a new number never changes the layout.
 private struct TimerNote: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        Text("\(model.timerTarget == .sleep ? "Sleep" : "Normal") in \(model.minutesLeft ?? 0) min")
+        let left = model.minutesLeft ?? 0
+        Text("\(model.timerTarget == .sleep ? "Sleep" : "Normal") in \(left < 60 ? "\(left) min" : CoffeeTimer.short(left))")
             .font(.system(size: 10.5).monospacedDigit())
             .foregroundStyle(.orange)
             .lineLimit(1)
@@ -165,6 +192,7 @@ struct FooterBar: View {
             RoundIconButton(symbol: "gearshape.fill", size: 24, active: showSettings, help: "Settings") {
                 withAnimation(.snappy(duration: 0.25)) { showSettings.toggle() }
             }
+            .demoTarget("settings")
             RoundIconButton(symbol: "power", size: 24, help: "Quit Coffee Control") {
                 NSApp.terminate(nil)
             }

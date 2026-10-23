@@ -21,6 +21,7 @@ final class AppModel {
     private(set) var state = KeepAwake.State()
     private(set) var lowPowerWhenClosed: Bool
     private(set) var awakeOnBattery: Bool
+    private(set) var showTimer: Bool
     /// Password dialog in progress (setting up/removing the helper rule).
     private(set) var isBusy = false
     private(set) var setupError: String?
@@ -31,7 +32,8 @@ final class AppModel {
     private(set) var timerThen: KeepAwake.Mode = .normal
     /// Whole minutes left, rounded up – changes once a minute and drives the menu bar title.
     private(set) var minutesLeft: Int?
-    static let timerChoices = [15, 30, 60, 120, 240]
+    /// Durations offered in the menu; set in Settings.
+    private(set) var timerChoices: [Int]
 
     /// The mode that follows the timer: never the one that is already on.
     var timerTarget: KeepAwake.Mode { CoffeeTimer.target(timerThen, current: state.mode) }
@@ -58,6 +60,8 @@ final class AppModel {
         keepAwake = Runtime.headless ? KeepAwake(defaults: AppModel.scratchDefaults(), backend: .inert) : KeepAwake(defaults: .standard)
         lowPowerWhenClosed = keepAwake.lowPowerWhenClosed
         awakeOnBattery = keepAwake.awakeOnBattery
+        showTimer = keepAwake.showTimer
+        timerChoices = keepAwake.timerChoices
         guard !Runtime.headless else { return }
         observeMenu()
         // On launch (also after a crash): bring reality in line with the stored switch.
@@ -104,6 +108,32 @@ final class AppModel {
     func setAwakeOnBattery(_ value: Bool) {
         awakeOnBattery = value
         perform { $0.set(awakeOnBattery: value) }
+    }
+
+    /// Hiding the timer section also cancels a running timer – nothing should count down out of sight.
+    func setShowTimer(_ value: Bool) {
+        showTimer = value
+        keepAwake.showTimer = value
+        if !value { setTimer(nil) }
+    }
+
+    /// Adds a typed duration ("45m", "8h", "1h 30m"); false if it can't be read. A running timer keeps going.
+    @discardableResult
+    func addTimerChoice(_ text: String) -> Bool {
+        guard let minutes = CoffeeTimer.parse(text) else { return false }
+        if timerChoices.count < CoffeeTimer.maxChoices { setTimerChoices(timerChoices + [minutes]) }
+        return true
+    }
+
+    /// The last duration stays: the menu always offers at least one.
+    func removeTimerChoice(_ minutes: Int) {
+        guard timerChoices.count > 1 else { return }
+        setTimerChoices(timerChoices.filter { $0 != minutes })
+    }
+
+    private func setTimerChoices(_ choices: [Int]) {
+        timerChoices = CoffeeTimer.sanitized(choices)
+        keepAwake.timerChoices = timerChoices
     }
 
     /// Set up the helper rule once via a password dialog; it takes effect immediately.
@@ -265,6 +295,11 @@ final class AppModel {
                                 lidClosed: args.contains("--closed"), lowPowerActive: on && args.contains("--closed"), pausedOnBattery: paused,
                                 blockersOverridden: args.contains("--blocked"))
         if paused { awakeOnBattery = false }
+        // Snapshots show the configured app: timer section on.
+        showTimer = !args.contains("--no-timer")
+        if let list = Runtime.value(after: "--times") {
+            timerChoices = CoffeeTimer.sanitized(list.split(separator: ",").compactMap { Int($0) })
+        }
         setupError = args.contains("--error") ? "visudo: syntax error" : nil
         // Performance check: the countdown runs from the start, `testStep` only moves it on.
         if Runtime.isStructureTest { setTimer(240) }
@@ -298,6 +333,37 @@ enum CoffeeTimer {
     /// The moment the shown number drops next (the end itself for the last minute).
     static func nextChange(end: Date, now: Date) -> Date {
         end.addingTimeInterval(-TimeInterval(max(minutesLeft(until: end, now: now) - 1, 0) * 60))
+    }
+
+    static let defaultChoices = [15, 30, 60, 120, 240]
+    /// Off plus six durations still fit the segmented row in the menu.
+    static let maxChoices = 6
+    static let maxMinutes = 99 * 60
+
+    /// Sorted, without duplicates, within 1 minute and 99 hours, at most `maxChoices`.
+    static func sanitized(_ choices: [Int]) -> [Int] {
+        Array(Set(choices.filter { (1...maxMinutes).contains($0) }).sorted().prefix(maxChoices))
+    }
+
+    /// Typed durations: "45" and "45m" are minutes; "8h", "1.5h", "1h 30m" and "1:30" are hours.
+    static func parse(_ text: String) -> Int? {
+        let s = text.lowercased().filter { !$0.isWhitespace }.replacingOccurrences(of: ",", with: ".")
+        func plainMinutes(_ part: Substring) -> Int? {
+            var part = part
+            if part.hasSuffix("min") { part = part.dropLast(3) } else if part.hasSuffix("m") { part = part.dropLast() }
+            return part.isEmpty ? 0 : Int(part)
+        }
+        var minutes: Double?
+        if let colon = s.firstIndex(of: ":") {
+            if let h = Int(s[..<colon]), let m = Int(s[s.index(after: colon)...]), m < 60 { minutes = Double(h * 60 + m) }
+        } else if let h = s.firstIndex(of: "h") {
+            if let hours = Double(s[..<h]), let m = plainMinutes(s[s.index(after: h)...]) { minutes = hours * 60 + Double(m) }
+        } else if !s.isEmpty, let m = plainMinutes(s[...]) {
+            minutes = Double(m)
+        }
+        guard let minutes, minutes.isFinite else { return nil }
+        let whole = Int(minutes.rounded())
+        return (1...maxMinutes).contains(whole) ? whole : nil
     }
 
     /// "15m", "1h", "1h 5m" – segments and menu bar alike.

@@ -44,7 +44,11 @@ enum SelfTest {
         expect(CoffeeTimer.minutesLeft(until: end, now: end.addingTimeInterval(5)) == 0, "never negative")
         expect(CoffeeTimer.nextChange(end: end, now: now.addingTimeInterval(1)) == now.addingTimeInterval(60), "next change on the minute")
         expect(CoffeeTimer.nextChange(end: end, now: end.addingTimeInterval(-30)) == end, "last minute ends at the end")
-        expect(AppModel.timerChoices.map(CoffeeTimer.short) == ["15m", "30m", "1h", "2h", "4h"], "segment labels")
+        expect(CoffeeTimer.defaultChoices.map(CoffeeTimer.short) == ["15m", "30m", "1h", "2h", "4h"], "segment labels")
+        let typed = ["45", "45m", "45 min", "8h", "16 H", "1.5h", "1,5h", "1h30", "1h 30m", "1:30", "99h"].map(CoffeeTimer.parse)
+        expect(typed == [45, 45, 45, 480, 960, 90, 90, 90, 90, 90, 5940], "typed durations: \(typed)")
+        expect(["", "h", "abc", "0", "0m", "100h", "-5", "1:75", "inf"].allSatisfy { CoffeeTimer.parse($0) == nil }, "rejects nonsense")
+        expect(CoffeeTimer.sanitized([960, 30, 30, 0, 480, 15, 60, 120, 240]) == [15, 30, 60, 120, 240, 480], "sorted, unique, at most six")
         expect(CoffeeTimer.short(65) == "1h 5m", "hours and minutes")
         expect(CoffeeTimer.target(.sleep, current: .awake) == .sleep && CoffeeTimer.target(.normal, current: .normal) == .sleep
                && CoffeeTimer.target(.sleep, current: .sleep) == .normal, "never follows itself")
@@ -65,6 +69,23 @@ enum SelfTest {
         model.setTimer(15)
         model.advanceTimer(by: 15 * 60)
         expect(model.state.mode == .sleep && model.timerMinutes == nil && model.minutesLeft == nil, "expires into the chosen mode")
+        let shown = model.showTimer
+        model.setTimer(30)
+        model.setShowTimer(false)
+        expect(model.timerMinutes == nil && model.minutesLeft == nil, "hiding the timer cancels it")
+        model.setShowTimer(shown)
+
+        let choices = model.timerChoices
+        model.removeTimerChoice(240)
+        expect(model.addTimerChoice("8h") && model.addTimerChoice("16h") && !model.addTimerChoice("soon"), "add typed durations")
+        expect(model.timerChoices == [15, 30, 60, 120, 480, 960], "custom durations: \(model.timerChoices)")
+        model.addTimerChoice("3h")
+        expect(model.timerChoices.count == CoffeeTimer.maxChoices && !model.timerChoices.contains(180), "list stays at six")
+        for minutes in model.timerChoices { model.removeTimerChoice(minutes) }
+        expect(model.timerChoices == [960], "the last duration stays")
+        for minutes in choices { model.addTimerChoice("\(minutes)") }
+        model.removeTimerChoice(960)
+        expect(model.timerChoices == choices, "restored: \(model.timerChoices)")
         model.setMode(before)
     }
 

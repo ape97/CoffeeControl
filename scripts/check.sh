@@ -19,7 +19,7 @@ warn=$(grep -E "warning:" build/log.txt | grep -v appintents | sort -u)
 APP="$PWD/build/Build/Products/Release/CoffeeControl.app"
 BIN="$APP/Contents/MacOS/CoffeeControl"
 # One entry "name:arguments" per view – add new pages/states here.
-for v in "main:" "off:--off" "no-rule:--nohelper" "closed:--closed" "settings:--settings" "settings-no-rule:--settings --nohelper --error" "battery-pause:--battery" "settings-battery:--settings --battery" "sleep:--sleep --blocked" "sleep-free:--sleep" "sleep-no-rule:--sleep --nohelper" "timer:--timer 30 --left 24 --then-sleep" "timer-sleep:--sleep --timer 60 --left 42"; do
+for v in "main:" "off:--off" "no-rule:--nohelper" "closed:--closed" "settings:--settings" "settings-no-rule:--settings --nohelper --error" "battery-pause:--battery" "settings-battery:--settings --battery" "sleep:--sleep --blocked" "sleep-free:--sleep" "sleep-no-rule:--sleep --nohelper" "timer:--timer 30 --left 24 --then-sleep" "no-timer:--no-timer" "timer-sleep:--sleep --timer 60 --left 42" "times:--timer 960 --left 959 --times 15,90,150,480,960,1440" "settings-times:--settings --times 15,90,150,480,960,1440"; do
   name=${v%%:*}; args=(${=v#*:})
   "$BIN" --snapshot $OUT/$name $args >/dev/null 2>&1
   [[ -s $OUT/$name-light.png && -s $OUT/$name-dark.png ]] || fail "Snapshot $name"

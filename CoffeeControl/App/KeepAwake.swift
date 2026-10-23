@@ -147,6 +147,21 @@ final class KeepAwake: @unchecked Sendable {
         set { defaults.set(newValue, forKey: "awakeOnBattery") }
     }
 
+    /// Timer section in the menu (default off: it only shows up for those who want it).
+    var showTimer: Bool {
+        get { defaults.bool(forKey: "showTimer") }
+        set { defaults.set(newValue, forKey: "showTimer") }
+    }
+
+    /// Durations the timer offers, in minutes (default 15m to 4h).
+    var timerChoices: [Int] {
+        get {
+            let stored = (defaults.array(forKey: "timerChoices") as? [Int]).map(CoffeeTimer.sanitized) ?? []
+            return stored.isEmpty ? CoffeeTimer.defaultChoices : stored
+        }
+        set { defaults.set(newValue, forKey: "timerChoices") }
+    }
+
     /// Coffee Control changed `disablesleep` from 0 to 1 and must revert it.
     var ownsSleepDisabled: Bool {
         get { defaults.bool(forKey: "ownsSleepDisabled") }
