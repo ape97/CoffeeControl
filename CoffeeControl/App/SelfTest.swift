@@ -15,6 +15,7 @@ enum SelfTest {
         checkHelper(&failures)
         checkLogic(&failures)
         checkTimer(&failures)
+        checkTimerRuns(&failures)
         // Only read the real system.
         if KeepAwake.rootDomainBool("SleepDisabled") == nil { failures.append("IOPMrootDomain SleepDisabled not readable") }
         report["sleepDisabled"] = KeepAwake.rootDomainBool("SleepDisabled") ?? "?"
@@ -86,6 +87,29 @@ enum SelfTest {
         for minutes in choices { model.addTimerChoice("\(minutes)") }
         model.removeTimerChoice(960)
         expect(model.timerChoices == choices, "restored: \(model.timerChoices)")
+        model.setMode(before)
+    }
+
+    /// Timer on the real run loop (a few seconds): the minute change and the expiry must fire by themselves,
+    /// without `advanceTimer` doing the work. The inert stand-in keeps the switch away from the system.
+    private static func checkTimerRuns(_ failures: inout [String]) {
+        func expect(_ ok: Bool, _ what: String) { if !ok { failures.append("timer run: \(what)") } }
+        func wait(_ seconds: TimeInterval) { RunLoop.main.run(until: Date().addingTimeInterval(seconds)) }
+        let model = AppModel.shared
+        let before = model.state.mode
+        model.setMode(.awake)
+        model.setTimerThen(.sleep)
+        // 2 minutes, 62 s left: the shown minute changes in 2 s, then the end is 60 s away.
+        model.setTimer(2)
+        model.advanceTimer(by: 58)
+        expect(model.minutesLeft == 2, "start: \(String(describing: model.minutesLeft))")
+        wait(4)
+        expect(model.minutesLeft == 1 && model.state.mode == .awake, "minute changes: \(String(describing: model.minutesLeft))")
+        // Bring the end to 2 s from now (replaces the planned timer), then wait for it.
+        model.advanceTimer(by: 58)
+        wait(4)
+        expect(model.state.mode == .sleep && model.timerMinutes == nil && model.minutesLeft == nil,
+               "expires by itself: \(model.state.mode) \(String(describing: model.minutesLeft))")
         model.setMode(before)
     }
 
