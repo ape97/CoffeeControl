@@ -181,12 +181,13 @@ private struct TimerNote: View {
     }
 }
 
-/// Footer as in all apps: name on the left, app-specific buttons if any, then Settings and Quit on the right.
+/// Footer as in all apps: app icon and name on the left, app-specific buttons if any, then Settings and Quit on the right.
 struct FooterBar: View {
     @Binding var showSettings: Bool
 
     var body: some View {
         HStack(spacing: 6) {
+            AppIcon(size: 16)
             Text("Coffee Control")
                 .font(.system(size: 10.5, weight: .medium))
                 .foregroundStyle(.tertiary)

@@ -48,6 +48,18 @@ struct RoundIconButton: View {
     }
 }
 
+/// The app's own icon from the asset catalog, e.g. next to the name in the footer.
+struct AppIcon: View {
+    let size: CGFloat
+    var body: some View {
+        Image(nsImage: NSImage(named: NSImage.applicationIconName) ?? NSImage())
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
 /// Colored round symbol (like devices in a sound mixer).
 struct DeviceBadge: View {
     let symbol: String
