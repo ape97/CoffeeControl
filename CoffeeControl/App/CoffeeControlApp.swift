@@ -14,10 +14,20 @@ struct CoffeeControlApp: App {
                 .id(model.menuGeneration)
                 .environment(model)
         } label: {
-            // Changes only on switching (awake = steaming cup, normal = empty cup, force sleep = crossed out).
-            Image(nsImage: CoffeeIcon.image(model.iconMode, pointSize: 14, weight: .regular))
+            MenuBarLabel()
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+/// Own view, so the minute count only updates the label – not the scene with the menu content.
+/// Changes only on switching (awake = steaming cup, normal = empty cup, force sleep = crossed out)
+/// and, with a timer running, once a minute.
+private struct MenuBarLabel: View {
+    private let model = AppModel.shared
+
+    var body: some View {
+        Image(nsImage: CoffeeIcon.menuBar(model.iconMode, minutesLeft: model.minutesLeft))
     }
 }
 
@@ -82,7 +92,7 @@ enum LoginItem {
 }
 
 /// Developer aid: renders the menu content invisibly into PNG files (light and dark) without showing windows.
-/// Usage: CoffeeControl --snapshot /path/base [--settings] [--off|--sleep] [--demo] …
+/// Usage: CoffeeControl --snapshot /path/base [--settings] [--off|--sleep] [--timer <min> [--left <min>] [--then-sleep]] [--demo] …
 ///   →  base-light.png, base-dark.png, base-symbol.png (menu bar, double resolution)
 enum Snapshot {
     @MainActor
@@ -114,7 +124,7 @@ enum Snapshot {
         }
         DemoTargets.write(to: "\(base)-targets.json")
         // Menu bar: on a light and a dark strip, double resolution.
-        let icon = CoffeeIcon.image(model.iconMode, pointSize: 14, weight: .regular)
+        let icon = CoffeeIcon.menuBar(model.iconMode, minutesLeft: model.minutesLeft)
         let size = NSSize(width: icon.size.width + 16, height: 24)
         let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width) * 2, pixelsHigh: Int(size.height) * 4,
                                    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,

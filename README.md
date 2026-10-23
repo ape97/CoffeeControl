@@ -26,12 +26,21 @@
 
 Switch between Awake, Normal and Sleep with one click. The menu bar icon and the status line follow the mode immediately.
 
+### Timer
+
+<p align="center">
+  <img src="docs/images/timer.gif" alt="Starting a 30-minute timer that then switches the Mac to Sleep" width="720">
+</p>
+
+Limit the current mode: after 15 minutes to 4 hours the Mac goes back to Normal or straight to Sleep. The menu bar shows the minutes left.
+
 <sub>The animations are rendered by the app itself from invented demo data; nothing on your Mac is recorded.</sub>
 
 ## Features
 
 - **Three modes**: **Awake**, **Normal** and **Sleep**, switched with one click in the menu.
 - **Awake**: the Mac never sleeps, not even with the lid closed. The status line shows what the system really reports and the app reverts it if something else resets the setting.
+- **Timer**: keep the current mode for 15 minutes to 4 hours, then switch to **Normal** or **Sleep**. The minutes left appear next to the menu bar icon; switching the mode by hand or quitting cancels the timer.
 - **Sleep (force sleep)**: the Mac sleeps as if nobody had started `caffeinate`, regardless of which app holds a sleep block (video, screen sharing, `caffeinate -s`).
 - **Closed-lid comfort**: optional Low Power Mode while the lid is closed (your previous power modes are restored on opening) and the built-in display is switched off.
 - **Also on Battery** option: when off, the app pauses on battery and the Mac sleeps normally.
@@ -51,7 +60,11 @@ Switch between Awake, Normal and Sleep with one click. The menu bar icon and the
   </tr>
   <tr>
     <td align="center"><img src="docs/images/battery-pause-dark.png" width="360"><br>Paused on battery</td>
+    <td align="center"><img src="docs/images/timer-dark.png" width="360"><br>Timer: Sleep in 24 minutes</td>
+  </tr>
+  <tr>
     <td align="center"><img src="docs/images/settings-dark.png" width="360"><br>Settings</td>
+    <td></td>
   </tr>
 </table>
 
@@ -74,6 +87,7 @@ To uninstall, remove the sleep rule under Settings → **Sleep Rule** → **Remo
 ## Usage
 
 - Click the menu bar item and pick a mode: **Awake**, **Normal** or **Sleep**.
+- **Timer**: pick a duration and what follows (**Then Normal** or **Sleep**); **Off** cancels it.
 - Settings (gear icon): **Also on Battery**, **Low Power Mode When Closed**, the sleep rule and **Open at Login**.
 - Quit with the power button in the menu footer; everything the app changed is restored.
 

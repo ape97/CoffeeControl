@@ -50,6 +50,7 @@ struct MainPage: View {
             .demoTarget("mode")
             .frame(maxWidth: .infinity)
         }
+        TimerModule()
         // Without the helper rule the Mac sleeps with the lid closed anyway: offer the one-time setup right here.
         if !state.helperInstalled {
             Module {
@@ -97,6 +98,57 @@ struct MainPage: View {
         if state.sleepDisabled != true { return ("Lid open only – closing it still sleeps", .orange) }
         if state.lowPowerActive { return ("Awake with lid closed · Low Power on", .green) }
         return ("Never sleeps · lid closed too", .green)
+    }
+}
+
+/// Timer: limits the current mode, then switches to Normal or Sleep. Both rows always stay in place;
+/// only the note below appears while the timer runs.
+struct TimerModule: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Module(spacing: 8) {
+            HStack(spacing: 8) {
+                SettingLabel(symbol: "timer", title: "Timer", tint: .orange)
+                Spacer()
+                if model.timerMinutes != nil { TimerNote() }
+            }
+            // Six segments don't fit next to the label: the picker gets its own full-width row.
+            Picker("Timer", selection: Binding(get: { model.timerMinutes ?? 0 }, set: { model.setTimer($0 == 0 ? nil : $0) })) {
+                Text("Off").tag(0)
+                ForEach(AppModel.timerChoices, id: \.self) { Text(CoffeeTimer.short($0)).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .demoTarget("timer")
+            .frame(maxWidth: .infinity)
+            HStack(spacing: 8) {
+                SettingLabel(symbol: "arrow.turn.down.right", title: "Then", tint: .gray)
+                Spacer()
+                // The mode that is already on can't follow itself: its segment is disabled.
+                Picker("Then", selection: Binding(get: { model.timerTarget }, set: { model.setTimerThen($0) })) {
+                    Text("Normal").tag(KeepAwake.Mode.normal).selectionDisabled(model.state.mode == .normal)
+                    Text("Sleep").tag(KeepAwake.Mode.sleep).selectionDisabled(model.state.mode == .sleep)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .demoTarget("then")
+            }
+        }
+    }
+}
+
+/// Own view so only this line follows the minute count – the pickers above stay untouched.
+/// Styled like `SettingNote`, but with fixed-width digits and on one line, so a new number never changes the layout.
+private struct TimerNote: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Text("\(model.timerTarget == .sleep ? "Sleep" : "Normal") in \(model.minutesLeft ?? 0) min")
+            .font(.system(size: 10.5).monospacedDigit())
+            .foregroundStyle(.orange)
+            .lineLimit(1)
     }
 }
 

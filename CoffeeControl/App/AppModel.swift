@@ -25,6 +25,17 @@ final class AppModel {
     private(set) var isBusy = false
     private(set) var setupError: String?
 
+    /// Timer: the chosen duration in minutes (nil = off) and the preferred follow-up mode. Not stored – quitting
+    /// or switching the mode by hand cancels it.
+    private(set) var timerMinutes: Int?
+    private(set) var timerThen: KeepAwake.Mode = .normal
+    /// Whole minutes left, rounded up – changes once a minute and drives the menu bar title.
+    private(set) var minutesLeft: Int?
+    static let timerChoices = [15, 30, 60, 120, 240]
+
+    /// The mode that follows the timer: never the one that is already on.
+    var timerTarget: KeepAwake.Mode { CoffeeTimer.target(timerThen, current: state.mode) }
+
     /// Which cup is shown: awake without a real assertion counts as normal.
     var iconMode: KeepAwake.Mode { state.mode == .awake && !state.active ? .normal : state.mode }
 
@@ -33,6 +44,8 @@ final class AppModel {
     @ObservationIgnored private let queue = DispatchQueue(label: "io.github.ape97.coffeecontrol.keepawake", qos: .userInitiated)
     @ObservationIgnored private var lidMonitor: LidMonitor?
     @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var timerEnd: Date?
+    @ObservationIgnored private var countdown: Timer?
 
     /// Incremented once the menu window has closed (resets sub-pages and lists).
     private(set) var menuGeneration = 0
@@ -57,6 +70,10 @@ final class AppModel {
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [keepAwake, queue] _ in
             queue.sync { keepAwake.releaseAll() }
         })
+        // Run-loop timers stand still while the Mac sleeps: after waking, catch up with the wall clock.
+        observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { AppModel.shared.scheduleCountdown() }
+        })
     }
 
     static func scratchDefaults() -> UserDefaults {
@@ -68,7 +85,13 @@ final class AppModel {
 
     // MARK: Keep awake
 
+    /// Switching by hand cancels a running timer.
     func setMode(_ mode: KeepAwake.Mode) {
+        setTimer(nil)
+        switchMode(mode)
+    }
+
+    private func switchMode(_ mode: KeepAwake.Mode) {
         state.mode = mode   // the switch follows immediately, the rest after the report
         perform { $0.set(mode: mode) }
     }
@@ -147,6 +170,42 @@ final class AppModel {
         timer = t
     }
 
+    // MARK: Timer
+
+    func setTimer(_ minutes: Int?) {
+        timerMinutes = minutes
+        timerEnd = minutes.map { Date().addingTimeInterval(TimeInterval($0 * 60)) }
+        scheduleCountdown()
+    }
+
+    func setTimerThen(_ mode: KeepAwake.Mode) {
+        timerThen = mode
+    }
+
+    /// No tick: a one-shot timer fires exactly when the shown minute changes (or the time is up) and plans the next one.
+    private func scheduleCountdown(now: Date = Date()) {
+        countdown?.invalidate()
+        countdown = nil
+        guard let end = timerEnd else {
+            if minutesLeft != nil { minutesLeft = nil }
+            return
+        }
+        guard end > now else {
+            let target = timerTarget
+            setTimer(nil)
+            switchMode(target)
+            return
+        }
+        let left = CoffeeTimer.minutesLeft(until: end, now: now)
+        if left != minutesLeft { minutesLeft = left }
+        let t = Timer(fire: CoffeeTimer.nextChange(end: end, now: now), interval: 0, repeats: false) { _ in
+            MainActor.assumeIsolated { AppModel.shared.scheduleCountdown() }
+        }
+        t.tolerance = 1
+        RunLoop.main.add(t, forMode: .common)
+        countdown = t
+    }
+
     // MARK: Menu open / closed
 
     private func menuOpened() {
@@ -207,11 +266,49 @@ final class AppModel {
                                 blockersOverridden: args.contains("--blocked"))
         if paused { awakeOnBattery = false }
         setupError = args.contains("--error") ? "visudo: syntax error" : nil
+        // Performance check: the countdown runs from the start, `testStep` only moves it on.
+        if Runtime.isStructureTest { setTimer(240) }
+        if let minutes = Runtime.value(after: "--timer").flatMap(Int.init) {
+            if args.contains("--then-sleep") { timerThen = .sleep }
+            setTimer(minutes)
+            // Shown minutes left: a little under the full duration, as a few seconds after starting.
+            advanceTimer(by: TimeInterval((minutes - (Runtime.value(after: "--left").flatMap(Int.init) ?? minutes)) * 60) + 5)
+        }
     }
 
-    /// Performance check: exactly one update as with the menu open (e.g. a tick with new values).
-    /// Fill it with its own function once the menu content changes by itself.
-    func testStep() {}
+    /// Self-test and snapshots: let the timer run ahead without waiting.
+    func advanceTimer(by seconds: TimeInterval) {
+        timerEnd = timerEnd?.addingTimeInterval(-seconds)
+        scheduleCountdown()
+    }
+
+    /// Performance check: exactly one update as with the menu open – the countdown moves on by one minute.
+    func testStep() {
+        advanceTimer(by: 60)
+    }
+}
+
+/// Countdown arithmetic, kept pure for the self-test.
+enum CoffeeTimer {
+    /// Whole minutes, rounded up: a 30-minute timer shows 30 for its first minute and 1 for its last.
+    static func minutesLeft(until end: Date, now: Date) -> Int {
+        max(0, Int((end.timeIntervalSince(now) / 60).rounded(.up)))
+    }
+
+    /// The moment the shown number drops next (the end itself for the last minute).
+    static func nextChange(end: Date, now: Date) -> Date {
+        end.addingTimeInterval(-TimeInterval(max(minutesLeft(until: end, now: now) - 1, 0) * 60))
+    }
+
+    /// "15m", "1h", "1h 5m" – segments and menu bar alike.
+    static func short(_ minutes: Int) -> String {
+        if minutes < 60 { return "\(minutes)m" }
+        return minutes % 60 == 0 ? "\(minutes / 60)h" : "\(minutes / 60)h \(minutes % 60)m"
+    }
+
+    static func target(_ preferred: KeepAwake.Mode, current: KeepAwake.Mode) -> KeepAwake.Mode {
+        preferred != current ? preferred : current == .sleep ? .normal : .sleep
+    }
 }
 
 /// Cup symbols as template images. SF Symbols has no crossed-out cup, so the slash is drawn by hand
@@ -256,5 +353,30 @@ enum CoffeeIcon {
         }
         cache[key] = image
         return image
+    }
+
+    private static var titled: (key: String, image: NSImage)?
+
+    /// Menu bar: the cup, with a running timer followed by the minutes left in the menu bar font.
+    /// Only the latest combination is kept – it changes at most once a minute.
+    static func menuBar(_ mode: KeepAwake.Mode, minutesLeft: Int?) -> NSImage {
+        let icon = image(mode, pointSize: 14, weight: .regular)
+        guard let minutesLeft else { return icon }
+        let key = "\(mode.rawValue)-\(minutesLeft)"
+        if let titled, titled.key == key { return titled.image }
+        let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.menuBarFont(ofSize: 0).pointSize, weight: .regular)
+        let text = NSAttributedString(string: CoffeeTimer.short(minutesLeft), attributes: [.font: font, .foregroundColor: NSColor.black])
+        let textSize = text.size()
+        let gap: CGFloat = 4
+        let size = NSSize(width: ceil(icon.size.width + gap + textSize.width), height: max(icon.size.height, ceil(textSize.height)))
+        let result = NSImage(size: size, flipped: false) { rect in
+            icon.draw(in: NSRect(x: 0, y: (rect.height - icon.size.height) / 2, width: icon.size.width, height: icon.size.height))
+            text.draw(at: NSPoint(x: icon.size.width + gap, y: (rect.height - textSize.height) / 2))
+            return true
+        }
+        result.isTemplate = true
+        result.accessibilityDescription = (icon.accessibilityDescription ?? "") + ", \(CoffeeTimer.short(minutesLeft)) left"
+        titled = (key, result)
+        return result
     }
 }

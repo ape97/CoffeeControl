@@ -6,7 +6,9 @@ cd "${0:A:h}/.."
 BIN=CoffeeControl
 COLORS=(D9B08C 6B452D)   # the icon's gradient colours (top, bottom), see scripts/icon.sh
 # page:snapshot arguments (the first page also provides the menu bar icon)
-PAGES=("main:" "normal:--off" "sleep:--sleep --blocked" "battery-pause:--battery" "settings:--settings")
+PAGES=("main:" "normal:--off" "sleep:--sleep --blocked" "battery-pause:--battery" "timer:--timer 30 --left 24 --then-sleep" "settings:--settings")
+# extra states only for the animations (rendered to RAW, not composed)
+EXTRA=("timer-start:--timer 30 --left 30" "timer-then:--timer 30 --left 30 --then-sleep" "timer-late:--timer 30 --left 1 --then-sleep")
 
 mkdir -p build
 xcodegen generate -q
@@ -14,7 +16,7 @@ xcodebuild -project $BIN.xcodeproj -scheme $BIN -configuration Release -derivedD
   || { tail -20 build/screenshots-build.log; exit 1 }
 RAW=build/screenshots/raw
 rm -rf $RAW; mkdir -p $RAW docs/images
-for page in $PAGES; do
+for page in $PAGES $EXTRA; do
   build/Build/Products/Release/$BIN.app/Contents/MacOS/$BIN --snapshot $RAW/${page%%:*} ${=page#*:} --demo >/dev/null 2>&1
 done
 swift scripts/compose.swift $RAW docs/images $COLORS ${PAGES%%:*}

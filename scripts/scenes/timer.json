@@ -1,0 +1,19 @@
+{
+  "screen": [760, 360], "scale": 2,
+  "shots": [
+    {"duration": 1.0, "symbol": "main", "cursor": [300, 300], "caption": "Awake, but only for a while?",
+     "windows": [{"id": "w", "title": "Downloads", "rect": [36, 120, 300, 280]}]},
+    {"duration": 0.15, "move": 0.7, "target": "@item"},
+    {"duration": 1.0, "panel": "main", "symbol": "main", "target": "@item", "click": true},
+    {"duration": 0.2, "move": 0.6, "panel": "main", "symbol": "main", "target": "timer", "point": [0.417, 0.5]},
+    {"duration": 1.8, "panel": "timer-start", "symbol": "timer-start", "target": "timer", "point": [0.417, 0.5], "click": true,
+     "caption": "Pick a duration: Awake for 30 more minutes"},
+    {"duration": 0.2, "move": 0.6, "panel": "timer-start", "symbol": "timer-start", "target": "then", "point": [0.75, 0.5]},
+    {"duration": 2.0, "panel": "timer-then", "symbol": "timer-then", "target": "then", "point": [0.75, 0.5], "click": true,
+     "caption": "Then: back to Normal, or straight to Sleep"},
+    {"duration": 0.1, "move": 0.6, "panel": "timer-then", "symbol": "timer-then", "cursor": [300, 300]},
+    {"duration": 1.8, "symbol": "timer", "cursor": [300, 300], "click": true, "caption": "The menu bar counts down the minutes left"},
+    {"duration": 1.4, "symbol": "timer-late", "cursor": [300, 300], "caption": "The menu bar counts down the minutes left"},
+    {"duration": 2.4, "symbol": "sleep", "cursor": [300, 300], "caption": "Time's up: the Mac switches to Sleep"}
+  ]
+}

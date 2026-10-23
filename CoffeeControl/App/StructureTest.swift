@@ -10,6 +10,8 @@ import SwiftUI
 enum StructureTest {
     static let steps = 15
     private static var counting = false
+    /// Only the menu window counts: the menu bar label (with a timer: the minutes left) lives in the status bar's own window.
+    private static weak var menuWindow: NSWindow?
     private static var structural = 0
     private static var tracking = 0
     private static var missing: [String] = []
@@ -24,6 +26,7 @@ enum StructureTest {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 600), styleMask: .borderless,
                               backing: .buffered, defer: false)
         window.contentView = host
+        menuWindow = window
         settle(host, window, seconds: 1)
 
         counting = true
@@ -56,16 +59,21 @@ enum StructureTest {
         let sel = NSSelectorFromString(name)
         guard let method = class_getInstanceMethod(cls, sel) else { missing.append(name); return }
         let old = method_getImplementation(method)
-        let note = { MainActor.assumeIsolated { if counting { count() } } }
+        let note = { (obj: AnyObject) in
+            MainActor.assumeIsolated {
+                guard counting, let menuWindow, (obj as? NSWindow) === menuWindow || (obj as? NSView)?.window === menuWindow else { return }
+                count()
+            }
+        }
         if boolArgument {
             typealias F = @convention(c) (AnyObject, Selector, Bool) -> Void
             let original = unsafeBitCast(old, to: F.self)
-            let block: @convention(block) (AnyObject, Bool) -> Void = { obj, flag in note(); original(obj, sel, flag) }
+            let block: @convention(block) (AnyObject, Bool) -> Void = { obj, flag in note(obj); original(obj, sel, flag) }
             method_setImplementation(method, imp_implementationWithBlock(block))
         } else {
             typealias F = @convention(c) (AnyObject, Selector, UnsafeRawPointer?) -> Void
             let original = unsafeBitCast(old, to: F.self)
-            let block: @convention(block) (AnyObject, UnsafeRawPointer?) -> Void = { obj, arg in note(); original(obj, sel, arg) }
+            let block: @convention(block) (AnyObject, UnsafeRawPointer?) -> Void = { obj, arg in note(obj); original(obj, sel, arg) }
             method_setImplementation(method, imp_implementationWithBlock(block))
         }
     }

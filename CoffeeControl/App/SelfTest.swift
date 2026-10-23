@@ -14,6 +14,7 @@ enum SelfTest {
         }
         checkHelper(&failures)
         checkLogic(&failures)
+        checkTimer(&failures)
         // Only read the real system.
         if KeepAwake.rootDomainBool("SleepDisabled") == nil { failures.append("IOPMrootDomain SleepDisabled not readable") }
         report["sleepDisabled"] = KeepAwake.rootDomainBool("SleepDisabled") ?? "?"
@@ -30,6 +31,41 @@ enum SelfTest {
             try? data.write(to: URL(fileURLWithPath: path))
         }
         NSApp.terminate(nil)
+    }
+
+    /// Timer: countdown arithmetic and the flow on the (stand-in) model – start, count down, cancel by hand, expire.
+    private static func checkTimer(_ failures: inout [String]) {
+        func expect(_ ok: Bool, _ what: String) { if !ok { failures.append("timer: \(what)") } }
+        let now = Date(timeIntervalSinceReferenceDate: 0)
+        let end = now.addingTimeInterval(30 * 60)
+        expect(CoffeeTimer.minutesLeft(until: end, now: now) == 30, "full duration")
+        expect(CoffeeTimer.minutesLeft(until: end, now: now.addingTimeInterval(1)) == 30, "rounds up")
+        expect(CoffeeTimer.minutesLeft(until: end, now: now.addingTimeInterval(60)) == 29, "one minute later")
+        expect(CoffeeTimer.minutesLeft(until: end, now: end.addingTimeInterval(5)) == 0, "never negative")
+        expect(CoffeeTimer.nextChange(end: end, now: now.addingTimeInterval(1)) == now.addingTimeInterval(60), "next change on the minute")
+        expect(CoffeeTimer.nextChange(end: end, now: end.addingTimeInterval(-30)) == end, "last minute ends at the end")
+        expect(AppModel.timerChoices.map(CoffeeTimer.short) == ["15m", "30m", "1h", "2h", "4h"], "segment labels")
+        expect(CoffeeTimer.short(65) == "1h 5m", "hours and minutes")
+        expect(CoffeeTimer.target(.sleep, current: .awake) == .sleep && CoffeeTimer.target(.normal, current: .normal) == .sleep
+               && CoffeeTimer.target(.sleep, current: .sleep) == .normal, "never follows itself")
+
+        let model = AppModel.shared
+        let before = model.state.mode
+        model.setMode(.awake)
+        model.setTimerThen(.sleep)
+        model.setTimer(30)
+        expect(model.timerMinutes == 30 && model.minutesLeft == 30, "start: \(String(describing: model.minutesLeft))")
+        model.advanceTimer(by: 60)
+        expect(model.minutesLeft == 29, "counts down: \(String(describing: model.minutesLeft))")
+        let image = CoffeeIcon.menuBar(.awake, minutesLeft: 29)
+        expect(image.isTemplate && image.size.width > CoffeeIcon.image(.awake, pointSize: 14, weight: .regular).size.width + 10, "menu bar shows the time")
+        model.setMode(.normal)
+        expect(model.timerMinutes == nil && model.minutesLeft == nil, "switching by hand cancels")
+        model.setMode(.awake)
+        model.setTimer(15)
+        model.advanceTimer(by: 15 * 60)
+        expect(model.state.mode == .sleep && model.timerMinutes == nil && model.minutesLeft == nil, "expires into the chosen mode")
+        model.setMode(before)
     }
 
     /// Sudo rule: syntax via `visudo -cf` on its own temp file; the install command validates before installing.
