@@ -17,5 +17,7 @@ Append new lines at the bottom and keep the format exactly (the "Platform now" v
   `kIOPMMessageClamshellStateChange` = `0xE0034100` (lid close/open, `LidMonitor` in `App/KeepAwake.swift`).
 - **IOPMAssertion** (PreventUserIdleSystemSleep, PreventSystemSleep, PreventUserIdleDisplaySleep).
 - **Signing**: builds are ad-hoc signed by default. If you sign with your own certificate via `Config/Local.xcconfig`, it expires; `scripts/status.sh` shows when, then renew it in Xcode.
+- **GitHub releases API** (`App/UpdateCheck.swift`), only while Check for Updates is on: `GET api.github.com/repos/ape97/CoffeeControl/releases/latest`,
+  reads `tag_name` and `html_url`, ignores drafts and pre-releases. If GitHub changes this, only the update notice stops working.
 
 tested: macOS=27.0.1 (26A434) Xcode=27.0 SDK=27.0 date=2026-10-18
