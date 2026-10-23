@@ -53,6 +53,8 @@ The timer offers 15 minutes to 4 hours out of the box. Type your own in Settings
 - **Closed-lid comfort**: optional Low Power Mode while the lid is closed (your previous power modes are restored on opening) and the built-in display is switched off.
 - **Also on Battery** option: when off, the app pauses on battery and the Mac sleeps normally.
 - **Safe**: quitting restores everything; Normal mode changes nothing on the system.
+- **Update notice** (optional, off by default): once a day the app looks up the latest release on GitHub and shows
+  "Version X available" in the menu, with **Download** (opens the release page) and **Skip**.
 
 ## Screenshots
 
@@ -72,7 +74,7 @@ The timer offers 15 minutes to 4 hours out of the box. Type your own in Settings
   </tr>
   <tr>
     <td align="center"><img src="docs/images/settings-dark.png" width="360"><br>Settings with the timer's durations</td>
-    <td></td>
+    <td align="center"><img src="docs/images/update-dark.png" width="360"><br>Update notice in the menu</td>
   </tr>
 </table>
 
@@ -96,7 +98,9 @@ To uninstall, remove the sleep rule under Settings → **Sleep Rule** → **Remo
 
 - Click the menu bar item and pick a mode: **Awake**, **Normal** or **Sleep**.
 - **Timer**: switch it on under Settings → **Timer**, then pick a duration in the menu and what follows (**Then Normal** or **Sleep**); **Off** cancels it. Add or remove durations under Settings → **Timer**.
-- Settings (gear icon): **Also on Battery**, **Low Power Mode When Closed**, **Timer** with its durations, the sleep rule and **Open at Login**.
+- Settings (gear icon): **Also on Battery**, **Low Power Mode When Closed**, **Timer** with its durations, the sleep rule, **Check for Updates** and **Open at Login**.
+- **Updates**: with **Check for Updates** on, a new version appears in the menu. **Download** opens the release page; replace the
+  app in `/Applications` with the new one. Your settings and the sleep rule stay.
 - Quit with the power button in the menu footer; everything the app changed is restored.
 
 Note: while Awake, a closed MacBook in a bag gets warm and drains its battery. The protections of macOS for low battery and overheating still apply.
@@ -128,7 +132,9 @@ administrator rights for one optional step:
 - **No background service.** The app is not a daemon and installs no helper tool. The rule only takes effect when the app runs `sudo -n pmset …`.
 - **Other processes.** For the charger case, Sleep mode ends `caffeinate` processes that block system sleep (only `caffeinate` itself, never the program that started it). The app runs `pmset sleepnow` and `pmset displaysleepnow`, which need no special rights.
 
-Everything stays on your Mac: no network access, no telemetry. The only stored data are your settings in the app's user defaults.
+Everything stays on your Mac, no telemetry. The only network access is the optional update check (off by default): once a
+day one request to `api.github.com` for the latest release number of this repository. Nothing about you or your Mac is sent.
+The only stored data are your settings in the app's user defaults.
 
 ## AI-assisted development
 

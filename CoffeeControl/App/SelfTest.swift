@@ -16,6 +16,7 @@ enum SelfTest {
         checkLogic(&failures)
         checkTimer(&failures)
         checkTimerRuns(&failures)
+        failures += UpdateCheck.selfTest()
         // Only read the real system.
         if KeepAwake.rootDomainBool("SleepDisabled") == nil { failures.append("IOPMrootDomain SleepDisabled not readable") }
         report["sleepDisabled"] = KeepAwake.rootDomainBool("SleepDisabled") ?? "?"

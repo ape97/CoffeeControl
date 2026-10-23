@@ -17,6 +17,7 @@ struct MenuView: View {
         }
         .padding(10)
         .frame(width: 380)
+        .onAppear { UpdateCheck.shared.checkIfDue() }
     }
 }
 
@@ -50,6 +51,7 @@ struct MainPage: View {
             .demoTarget("mode")
             .frame(maxWidth: .infinity)
         }
+        UpdateNotice()
         if model.showTimer { TimerModule() }
         // Without the helper rule the Mac sleeps with the lid closed anyway: offer the one-time setup right here.
         if !state.helperInstalled {

@@ -73,6 +73,8 @@ struct SettingsPage: View {
                 }
             }
 
+            UpdateSettings()
+
             Module {
                 HStack {
                     SettingLabel(symbol: "power", title: "Open at Login", tint: .green)

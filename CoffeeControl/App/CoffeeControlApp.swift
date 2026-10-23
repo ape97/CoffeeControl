@@ -37,7 +37,9 @@ enum Runtime {
     static let isSnapshot = arguments.contains("--snapshot")
     static let isSelfTest = arguments.contains("--selftest")
     static let isStructureTest = arguments.contains("--structuretest")
-    static let headless = isSnapshot || isSelfTest || isStructureTest
+    /// Manual test of the update check from the installed app: one request, result as JSON, no menu.
+    static let isCheckUpdate = arguments.contains("--check-update")
+    static let headless = isSnapshot || isSelfTest || isStructureTest || isCheckUpdate
     /// Fixed, generic content for promotional images; only together with `--snapshot`, default settings from a throwaway suite.
     static let isDemo = isSnapshot && arguments.contains("--demo")
 
@@ -56,8 +58,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { SelfTest.run(writingTo: path) }
         } else if let path = Runtime.value(after: "--structuretest") {
             MainActor.assumeIsolated { StructureTest.run(writingTo: path) }
+        } else if let path = Runtime.value(after: "--check-update") {
+            MainActor.assumeIsolated { UpdateCheck.report(writingTo: path) }
         } else {
             LoginItem.enableOnFirstLaunch()
+            MainActor.assumeIsolated { UpdateCheck.shared.start() }
         }
     }
 }
@@ -92,7 +97,7 @@ enum LoginItem {
 }
 
 /// Developer aid: renders the menu content invisibly into PNG files (light and dark) without showing windows.
-/// Usage: CoffeeControl --snapshot /path/base [--settings] [--off|--sleep] [--timer <min> [--left <min>] [--then-sleep]] [--demo] …
+/// Usage: CoffeeControl --snapshot /path/base [--settings] [--off|--sleep] [--timer <min> [--left <min>] [--then-sleep]] [--update <version>] [--demo] …
 ///   →  base-light.png, base-dark.png, base-symbol.png (menu bar, double resolution)
 enum Snapshot {
     @MainActor
